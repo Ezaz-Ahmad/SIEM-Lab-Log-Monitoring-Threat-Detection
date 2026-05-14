@@ -2,8 +2,6 @@
 
 **Skills:** SIEM, log parsing, detection engineering, correlation  
 **Tools:** Splunk Free / ELK Stack, Sysmon, Windows/Linux VMs  
-**Time:** ~20–30 hrs | **Cost:** $0  
-
 ## Overview
 
 A home lab simulating real Tier 1–2 SOC operations: ingesting logs from Windows (Sysmon) and Linux (auth logs), then detecting simulated attacks including brute force and PowerShell misuse using custom detection rules.
