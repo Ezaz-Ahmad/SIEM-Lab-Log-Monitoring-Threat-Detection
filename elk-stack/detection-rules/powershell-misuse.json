@@ -1,0 +1,79 @@
+{
+  "comment": "Kibana Detection Rule — PowerShell Misuse",
+  "description": "Import via Kibana > Security > Rules > Import",
+  "rules": [
+    {
+      "name": "PowerShell Encoded Command Execution",
+      "description": "Detects PowerShell executed with -EncodedCommand or -enc flags, commonly used to obfuscate malicious commands.",
+      "enabled": true,
+      "risk_score": 73,
+      "severity": "high",
+      "type": "query",
+      "index": ["siem-logs-*"],
+      "query": "tags:\"powershell-suspicious\" OR alert_type:\"suspicious_powershell\"",
+      "from": "now-5m",
+      "interval": "1m",
+      "tags": ["powershell", "obfuscation", "execution", "windows"],
+      "references": [
+        "https://attack.mitre.org/techniques/T1059/001/",
+        "https://attack.mitre.org/techniques/T1027/"
+      ],
+      "threat": [
+        {
+          "framework": "MITRE ATT&CK",
+          "tactic": {
+            "id": "TA0002",
+            "name": "Execution",
+            "reference": "https://attack.mitre.org/tactics/TA0002/"
+          },
+          "technique": [
+            {
+              "id": "T1059.001",
+              "name": "PowerShell",
+              "reference": "https://attack.mitre.org/techniques/T1059/001/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "PowerShell Downloading Files from Internet",
+      "description": "Detects PowerShell using WebClient or DownloadString — common in dropper and C2 staging.",
+      "enabled": true,
+      "risk_score": 85,
+      "severity": "high",
+      "type": "query",
+      "index": ["siem-logs-*"],
+      "query": "winlog.event_id:1 AND winlog.event_data.CommandLine:(*DownloadString* OR *WebClient* OR *Invoke-WebRequest* OR *curl* OR *wget*) AND winlog.event_data.Image:*powershell*",
+      "from": "now-5m",
+      "interval": "1m",
+      "tags": ["powershell", "download", "c2", "windows"]
+    },
+    {
+      "name": "PowerShell Making Outbound Network Connection",
+      "description": "Detects PowerShell (Sysmon Event ID 3) initiating outbound network connections — may indicate C2 communication.",
+      "enabled": true,
+      "risk_score": 65,
+      "severity": "medium",
+      "type": "query",
+      "index": ["siem-logs-*"],
+      "query": "tags:\"powershell-network\" OR alert_type:\"powershell_network_connection\"",
+      "from": "now-5m",
+      "interval": "1m",
+      "tags": ["powershell", "network", "c2", "windows"]
+    },
+    {
+      "name": "PowerShell Spawned by Office Application",
+      "description": "Detects PowerShell spawned by Word/Excel/Outlook — a strong indicator of macro-based malware.",
+      "enabled": true,
+      "risk_score": 95,
+      "severity": "critical",
+      "type": "query",
+      "index": ["siem-logs-*"],
+      "query": "winlog.event_id:1 AND winlog.event_data.Image:*powershell* AND winlog.event_data.ParentImage:(*winword* OR *excel* OR *outlook* OR *mspub*)",
+      "from": "now-5m",
+      "interval": "1m",
+      "tags": ["powershell", "macro", "office", "initial-access", "windows"]
+    }
+  ]
+}

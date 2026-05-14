@@ -1,0 +1,80 @@
+{
+  "comment": "Kibana Detection Rule — SSH / RDP Brute Force",
+  "description": "Import via Kibana > Security > Rules > Import",
+  "rules": [
+    {
+      "name": "SSH Brute Force — Multiple Failed Logins",
+      "description": "Detects more than 5 failed SSH login attempts from the same source IP within 60 seconds.",
+      "enabled": true,
+      "risk_score": 73,
+      "severity": "high",
+      "type": "threshold",
+      "index": ["siem-logs-*"],
+      "query": "alert_type:\"ssh_failed_password\"",
+      "threshold": {
+        "field": ["src_ip"],
+        "value": 5
+      },
+      "from": "now-60s",
+      "interval": "1m",
+      "tags": ["brute-force", "ssh", "linux"],
+      "references": ["https://attack.mitre.org/techniques/T1110/001/"],
+      "threat": [
+        {
+          "framework": "MITRE ATT&CK",
+          "tactic": {
+            "id": "TA0006",
+            "name": "Credential Access",
+            "reference": "https://attack.mitre.org/tactics/TA0006/"
+          },
+          "technique": [
+            {
+              "id": "T1110",
+              "name": "Brute Force",
+              "reference": "https://attack.mitre.org/techniques/T1110/"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Windows RDP Brute Force — Multiple 4625 Events",
+      "description": "Detects more than 5 Windows failed logon events (EventID 4625) from the same source within 60 seconds.",
+      "enabled": true,
+      "risk_score": 73,
+      "severity": "high",
+      "type": "threshold",
+      "index": ["siem-logs-*"],
+      "query": "winlog.event_id:4625 AND winlog.event_data.LogonType:(3 OR 10)",
+      "threshold": {
+        "field": ["winlog.event_data.IpAddress"],
+        "value": 5
+      },
+      "from": "now-60s",
+      "interval": "1m",
+      "tags": ["brute-force", "rdp", "windows"],
+      "references": ["https://attack.mitre.org/techniques/T1110/001/"],
+      "threat": [
+        {
+          "framework": "MITRE ATT&CK",
+          "tactic": {
+            "id": "TA0006",
+            "name": "Credential Access",
+            "reference": "https://attack.mitre.org/tactics/TA0006/"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Successful Login After Multiple Failures (Brute Force Success)",
+      "description": "Detects a successful logon (4624) shortly after multiple failed logons (4625) from the same IP — indicates likely successful brute force.",
+      "enabled": true,
+      "risk_score": 90,
+      "severity": "critical",
+      "type": "eql",
+      "index": ["siem-logs-*"],
+      "query": "sequence by winlog.event_data.IpAddress with maxspan=2m [any where winlog.event_id == 4625] with runs=5 [any where winlog.event_id == 4624]",
+      "tags": ["brute-force", "credential-access", "windows"]
+    }
+  ]
+}

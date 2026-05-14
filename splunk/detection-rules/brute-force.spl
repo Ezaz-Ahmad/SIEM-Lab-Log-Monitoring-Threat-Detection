@@ -1,0 +1,54 @@
+| SPL DETECTION RULES — BRUTE FORCE
+| Save each block as a Saved Search or Alert in Splunk > Settings > Searches, Reports, and Alerts
+
+=============================================================================
+RULE 1: RDP/Local Brute Force — Windows Failed Logons (EventID 4625)
+=============================================================================
+
+index=siem_windows EventCode=4625 LogonType IN (3, 10)
+| bucket _time span=60s
+| stats count AS failed_attempts, values(src_ip) AS src_ips, values(user) AS targeted_users BY _time, ComputerName
+| where failed_attempts >= 5
+| eval severity="HIGH", alert="RDP_Brute_Force_Detected"
+| table _time, ComputerName, src_ips, targeted_users, failed_attempts, severity, alert
+
+Alert Settings:
+  - Trigger: Number of results > 0
+  - Schedule: Real-time or every 1 minute
+  - Action: Add to triggered alerts, send email
+
+=============================================================================
+RULE 2: SSH Brute Force — Linux Auth Logs
+=============================================================================
+
+index=siem_linux sourcetype=linux_secure "Failed password"
+| rex "Failed password for (?<user>\S+) from (?<src_ip>\S+) port (?<port>\d+)"
+| bucket _time span=60s
+| stats count AS failed_attempts, values(user) AS targeted_users BY _time, src_ip, host
+| where failed_attempts >= 5
+| eval severity="HIGH", alert="SSH_Brute_Force_Detected"
+| table _time, host, src_ip, targeted_users, failed_attempts, severity, alert
+
+=============================================================================
+RULE 3: Brute Force Success — Successful Login After Failures
+=============================================================================
+
+index=siem_windows (EventCode=4624 OR EventCode=4625) LogonType IN (3, 10)
+| eval event_type=if(EventCode=4624, "success", "failure")
+| bucket _time span=120s
+| stats count(eval(event_type="failure")) AS failures,
+        count(eval(event_type="success")) AS successes,
+        values(user) AS users
+  BY _time, src_ip, ComputerName
+| where failures >= 5 AND successes >= 1
+| eval severity="CRITICAL", alert="Brute_Force_Success_Likely"
+| table _time, ComputerName, src_ip, users, failures, successes, severity, alert
+
+=============================================================================
+RULE 4: Account Lockout (EventID 4740)
+=============================================================================
+
+index=siem_windows EventCode=4740
+| stats count BY TargetUserName, IpAddress, ComputerName, _time
+| eval severity="HIGH", alert="Account_Lockout"
+| table _time, ComputerName, TargetUserName, IpAddress, severity, alert

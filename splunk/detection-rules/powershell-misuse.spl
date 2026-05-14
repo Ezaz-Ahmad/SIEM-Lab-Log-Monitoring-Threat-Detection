@@ -1,0 +1,72 @@
+| SPL DETECTION RULES — POWERSHELL MISUSE
+| Save each block as a Saved Search or Alert in Splunk > Settings > Searches, Reports, and Alerts
+
+=============================================================================
+RULE 1: PowerShell Encoded Command Execution (Sysmon Event ID 1)
+=============================================================================
+
+index=siem_sysmon EventCode=1
+  (CommandLine="*-EncodedCommand*" OR CommandLine="*-enc *" OR CommandLine="*-e *")
+  Image="*powershell*" OR Image="*pwsh*"
+| eval severity="HIGH", alert="PowerShell_Encoded_Command", mitre="T1059.001 / T1027"
+| table _time, ComputerName, User, Image, CommandLine, ParentImage, severity, alert, mitre
+
+Alert Settings:
+  - Trigger: Number of results > 0
+  - Schedule: Real-time
+
+=============================================================================
+RULE 2: PowerShell Downloading Content (Cradle Detection)
+=============================================================================
+
+index=siem_sysmon EventCode=1 Image="*powershell*"
+  (CommandLine="*DownloadString*" OR CommandLine="*WebClient*" OR
+   CommandLine="*Invoke-WebRequest*" OR CommandLine="*iwr*" OR
+   CommandLine="*curl*" OR CommandLine="*wget*" OR
+   CommandLine="*DownloadFile*" OR CommandLine="*BitsTransfer*")
+| eval severity="HIGH", alert="PowerShell_Download_Cradle", mitre="T1059.001 / T1105"
+| table _time, ComputerName, User, CommandLine, ParentImage, severity, alert, mitre
+
+=============================================================================
+RULE 3: PowerShell Spawned by Office Application
+=============================================================================
+
+index=siem_sysmon EventCode=1 Image="*powershell*"
+  (ParentImage="*winword*" OR ParentImage="*excel*" OR
+   ParentImage="*outlook*" OR ParentImage="*mspub*" OR
+   ParentImage="*onenote*")
+| eval severity="CRITICAL", alert="PowerShell_Spawned_By_Office", mitre="T1566.001"
+| table _time, ComputerName, User, Image, CommandLine, ParentImage, severity, alert, mitre
+
+=============================================================================
+RULE 4: PowerShell Making Outbound Network Connection (Sysmon Event ID 3)
+=============================================================================
+
+index=siem_sysmon EventCode=3
+  (Image="*powershell*" OR Image="*pwsh*" OR Image="*cmd.exe*")
+  Initiated=true
+| stats count AS connections, values(DestinationIp) AS dest_ips,
+        values(DestinationPort) AS dest_ports
+  BY ComputerName, User, Image, _time
+| where connections > 0
+| eval severity="MEDIUM", alert="PowerShell_Outbound_Network", mitre="T1071"
+| table _time, ComputerName, User, Image, dest_ips, dest_ports, connections, severity, alert
+
+=============================================================================
+RULE 5: PowerShell Event Log Cleared (EventID 1102)
+=============================================================================
+
+index=siem_windows EventCode=1102 OR EventCode=104
+| eval severity="HIGH", alert="Event_Log_Cleared", mitre="T1070.001"
+| table _time, ComputerName, user, Channel, severity, alert, mitre
+
+=============================================================================
+RULE 6: Suspicious Script Block Logging (EventID 4104)
+=============================================================================
+
+index=siem_powershell EventCode=4104
+  (ScriptBlockText="*Invoke-Mimikatz*" OR ScriptBlockText="*AmsiBypass*" OR
+   ScriptBlockText="*Set-MpPreference*" OR ScriptBlockText="*Add-MpPreference*" OR
+   ScriptBlockText="*Invoke-Shellcode*" OR ScriptBlockText="*GetDelegateForFunctionPointer*")
+| eval severity="CRITICAL", alert="Malicious_PowerShell_Script_Block", mitre="T1059.001"
+| table _time, ComputerName, UserID, ScriptBlockText, severity, alert, mitre

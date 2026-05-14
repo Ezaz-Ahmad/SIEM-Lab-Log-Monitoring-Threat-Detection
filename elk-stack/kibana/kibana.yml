@@ -1,0 +1,12 @@
+server.name: siem-kibana
+server.host: "0.0.0.0"
+elasticsearch.hosts: ["http://elasticsearch:9200"]
+
+# Disable security for lab
+xpack.security.enabled: false
+xpack.encryptedSavedObjects.encryptionKey: "siem-lab-key-32-chars-minimum-x1"
+xpack.reporting.encryptionKey: "siem-lab-key-32-chars-minimum-x2"
+xpack.security.encryptionKey: "siem-lab-key-32-chars-minimum-x3"
+
+# Default index pattern
+kibana.defaultAppId: "discover"

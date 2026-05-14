@@ -1,0 +1,23 @@
+# Sample Linux auth.log entries for SIEM parser testing
+# Synthetic data — safe for testing Logstash/Splunk pipelines
+
+Nov 15 14:32:01 ubuntu-lab sshd[1234]: Failed password for labuser from 192.168.56.100 port 54321 ssh2
+Nov 15 14:32:02 ubuntu-lab sshd[1234]: Failed password for labuser from 192.168.56.100 port 54322 ssh2
+Nov 15 14:32:03 ubuntu-lab sshd[1234]: Failed password for root from 192.168.56.100 port 54323 ssh2
+Nov 15 14:32:04 ubuntu-lab sshd[1234]: Failed password for admin from 192.168.56.100 port 54324 ssh2
+Nov 15 14:32:05 ubuntu-lab sshd[1234]: Failed password for labuser from 192.168.56.100 port 54325 ssh2
+Nov 15 14:32:06 ubuntu-lab sshd[1234]: Failed password for labuser from 192.168.56.100 port 54326 ssh2
+Nov 15 14:32:07 ubuntu-lab sshd[1235]: message repeated 3 times: [ Failed password for labuser from 192.168.56.100 port 54327 ssh2]
+Nov 15 14:32:08 ubuntu-lab sshd[1235]: error: maximum authentication attempts exceeded for labuser from 192.168.56.100 port 54327 ssh2 [preauth]
+Nov 15 14:33:00 ubuntu-lab sshd[1236]: Accepted password for labuser from 192.168.56.20 port 44444 ssh2
+Nov 15 14:33:00 ubuntu-lab sshd[1236]: pam_unix(sshd:session): session opened for user labuser by (uid=0)
+Nov 15 14:35:00 ubuntu-lab sudo: labuser : TTY=pts/0 ; PWD=/home/labuser ; USER=root ; COMMAND=/usr/bin/id
+Nov 15 14:35:10 ubuntu-lab sudo: labuser : TTY=pts/0 ; PWD=/home/labuser ; USER=root ; COMMAND=/bin/bash
+Nov 15 14:36:00 ubuntu-lab sudo: pam_unix(sudo:auth): authentication failure; logname=labuser uid=1000 euid=0 tty=/dev/pts/0 ruser=labuser rhost= user=labuser
+Nov 15 14:36:00 ubuntu-lab sudo: labuser : 1 incorrect password attempt ; TTY=pts/0 ; PWD=/home/labuser ; USER=root ; COMMAND=/usr/bin/passwd
+Nov 15 14:37:00 ubuntu-lab useradd[5678]: new user: name=backdoor, UID=1337, GID=1337, home=/home/backdoor, shell=/bin/bash
+Nov 15 14:38:00 ubuntu-lab usermod[5679]: add 'backdoor' to group 'sudo'
+Nov 15 14:40:00 ubuntu-lab sshd[1237]: Accepted publickey for root from 192.168.56.100 port 55555 ssh2
+Nov 15 14:41:00 ubuntu-lab sshd[1238]: Failed password for invalid user oracle from 10.0.0.1 port 33333 ssh2
+Nov 15 14:41:01 ubuntu-lab sshd[1238]: Failed password for invalid user postgres from 10.0.0.1 port 33334 ssh2
+Nov 15 14:41:02 ubuntu-lab sshd[1238]: Failed password for invalid user ubuntu from 10.0.0.1 port 33335 ssh2

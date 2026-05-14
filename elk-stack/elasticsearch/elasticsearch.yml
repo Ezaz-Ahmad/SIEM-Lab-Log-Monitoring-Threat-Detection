@@ -1,0 +1,12 @@
+cluster.name: siem-lab
+node.name: siem-node-1
+
+# Allow all origins for lab (do NOT use in production)
+http.cors.enabled: true
+http.cors.allow-origin: "*"
+http.cors.allow-headers: "Authorization, X-Requested-With, Content-Type, Content-Length"
+
+# Disable security for lab simplicity
+xpack.security.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false

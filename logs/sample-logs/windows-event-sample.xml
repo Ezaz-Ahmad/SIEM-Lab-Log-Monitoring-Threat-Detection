@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sample Windows Event Logs for testing parsers and dashboards -->
+<!-- These are synthetic logs — safe to use for SIEM testing -->
+
+<Events>
+
+  <!-- EventID 4625: Failed Logon (brute force simulation) -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing" Guid="{54849625-5478-4994-A5BA-3E3B0328C30D}"/>
+      <EventID>4625</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:32:01.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="SubjectUserName">-</Data>
+      <Data Name="TargetUserName">labadmin</Data>
+      <Data Name="WorkstationName">ATTACKER-VM</Data>
+      <Data Name="IpAddress">192.168.56.100</Data>
+      <Data Name="IpPort">54321</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="FailureReason">Unknown user name or bad password</Data>
+      <Data Name="Status">0xC000006D</Data>
+      <Data Name="SubStatus">0xC0000064</Data>
+    </EventData>
+  </Event>
+
+  <!-- EventID 4624: Successful Logon -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing"/>
+      <EventID>4624</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:33:45.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="TargetUserName">labadmin</Data>
+      <Data Name="TargetDomainName">WIN10-LAB</Data>
+      <Data Name="IpAddress">192.168.56.100</Data>
+      <Data Name="LogonType">3</Data>
+      <Data Name="AuthenticationPackageName">NTLM</Data>
+    </EventData>
+  </Event>
+
+  <!-- EventID 4672: Special Privileges (privilege escalation) -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Security-Auditing"/>
+      <EventID>4672</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:33:46.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="SubjectUserName">labadmin</Data>
+      <Data Name="SubjectDomainName">WIN10-LAB</Data>
+      <Data Name="PrivilegeList">SeSecurityPrivilege SeBackupPrivilege SeRestorePrivilege SeDebugPrivilege</Data>
+    </EventData>
+  </Event>
+
+  <!-- Sysmon EventID 1: PowerShell with encoded command -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Sysmon"/>
+      <EventID>1</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:35:00.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="Image">C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</Data>
+      <Data Name="CommandLine">powershell.exe -NoProfile -NonInteractive -EncodedCommand VwByAGkAdABlAC0ASABvAHMAdAAgACcAdABlAHMAdAAnAA==</Data>
+      <Data Name="ParentImage">C:\Windows\System32\cmd.exe</Data>
+      <Data Name="User">WIN10-LAB\labadmin</Data>
+      <Data Name="Hashes">MD5=ABC123,SHA256=DEF456</Data>
+    </EventData>
+  </Event>
+
+  <!-- Sysmon EventID 3: PowerShell network connection -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Sysmon"/>
+      <EventID>3</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:35:05.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="Image">C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe</Data>
+      <Data Name="User">WIN10-LAB\labadmin</Data>
+      <Data Name="SourceIp">192.168.56.20</Data>
+      <Data Name="SourcePort">51234</Data>
+      <Data Name="DestinationIp">192.168.56.100</Data>
+      <Data Name="DestinationPort">4444</Data>
+      <Data Name="Initiated">true</Data>
+      <Data Name="Protocol">tcp</Data>
+    </EventData>
+  </Event>
+
+  <!-- EventID 1102: Security Audit Log Cleared -->
+  <Event xmlns="http://schemas.microsoft.com/win/2004/08/events/event">
+    <System>
+      <Provider Name="Microsoft-Windows-Eventlog"/>
+      <EventID>1102</EventID>
+      <TimeCreated SystemTime="2024-11-15T14:40:00.000Z"/>
+      <Computer>WIN10-LAB</Computer>
+    </System>
+    <EventData>
+      <Data Name="SubjectUserName">labadmin</Data>
+      <Data Name="SubjectDomainName">WIN10-LAB</Data>
+    </EventData>
+  </Event>
+
+</Events>

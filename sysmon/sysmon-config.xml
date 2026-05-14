@@ -1,0 +1,119 @@
+<Sysmon schemaversion="4.90">
+  <!-- Sysmon config for SIEM Lab - based on SwiftOnSecurity template -->
+  <HashAlgorithms>md5,sha256,IMPHASH</HashAlgorithms>
+  <CheckRevocation/>
+
+  <EventFiltering>
+
+    <!-- Event ID 1: Process Creation -->
+    <RuleGroup name="" groupRelation="or">
+      <ProcessCreate onmatch="include">
+        <!-- PowerShell with encoded commands -->
+        <CommandLine condition="contains">-EncodedCommand</CommandLine>
+        <CommandLine condition="contains">-enc </CommandLine>
+        <CommandLine condition="contains">-e </CommandLine>
+        <CommandLine condition="contains">IEX</CommandLine>
+        <CommandLine condition="contains">Invoke-Expression</CommandLine>
+        <CommandLine condition="contains">DownloadString</CommandLine>
+        <CommandLine condition="contains">WebClient</CommandLine>
+        <CommandLine condition="contains">Net.WebClient</CommandLine>
+        <!-- Suspicious process parents -->
+        <ParentImage condition="contains">winword.exe</ParentImage>
+        <ParentImage condition="contains">excel.exe</ParentImage>
+        <ParentImage condition="contains">outlook.exe</ParentImage>
+        <!-- Recon tools -->
+        <Image condition="end with">whoami.exe</Image>
+        <Image condition="end with">net.exe</Image>
+        <Image condition="end with">ipconfig.exe</Image>
+        <Image condition="end with">nmap.exe</Image>
+        <Image condition="end with">mimikatz.exe</Image>
+        <!-- Scheduled task creation -->
+        <Image condition="end with">schtasks.exe</Image>
+        <Image condition="end with">at.exe</Image>
+      </ProcessCreate>
+    </RuleGroup>
+
+    <!-- Event ID 2: File creation time changed (timestomping) -->
+    <RuleGroup name="" groupRelation="or">
+      <FileCreateTime onmatch="include">
+        <Image condition="contains">temp</Image>
+        <TargetFilename condition="end with">.exe</TargetFilename>
+        <TargetFilename condition="end with">.ps1</TargetFilename>
+        <TargetFilename condition="end with">.bat</TargetFilename>
+        <TargetFilename condition="end with">.vbs</TargetFilename>
+      </FileCreateTime>
+    </RuleGroup>
+
+    <!-- Event ID 3: Network Connection -->
+    <RuleGroup name="" groupRelation="or">
+      <NetworkConnect onmatch="include">
+        <!-- Common C2 ports -->
+        <DestinationPort condition="is">4444</DestinationPort>
+        <DestinationPort condition="is">1337</DestinationPort>
+        <DestinationPort condition="is">8080</DestinationPort>
+        <DestinationPort condition="is">9001</DestinationPort>
+        <!-- RDP -->
+        <DestinationPort condition="is">3389</DestinationPort>
+        <!-- SSH -->
+        <DestinationPort condition="is">22</DestinationPort>
+        <!-- PowerShell making network connections -->
+        <Image condition="end with">powershell.exe</Image>
+        <Image condition="end with">pwsh.exe</Image>
+        <Image condition="end with">cmd.exe</Image>
+      </NetworkConnect>
+    </RuleGroup>
+
+    <!-- Event ID 7: Image Loaded (DLL) -->
+    <RuleGroup name="" groupRelation="or">
+      <ImageLoad onmatch="include">
+        <Signed condition="is">false</Signed>
+        <ImageLoaded condition="contains">AppData</ImageLoaded>
+        <ImageLoaded condition="contains">Temp</ImageLoaded>
+      </ImageLoad>
+    </RuleGroup>
+
+    <!-- Event ID 8: CreateRemoteThread (process injection) -->
+    <RuleGroup name="" groupRelation="or">
+      <CreateRemoteThread onmatch="include">
+        <TargetImage condition="end with">lsass.exe</TargetImage>
+        <TargetImage condition="end with">svchost.exe</TargetImage>
+        <TargetImage condition="end with">explorer.exe</TargetImage>
+      </CreateRemoteThread>
+    </RuleGroup>
+
+    <!-- Event ID 11: File Created -->
+    <RuleGroup name="" groupRelation="or">
+      <FileCreate onmatch="include">
+        <!-- Scripts dropped in suspicious locations -->
+        <TargetFilename condition="contains">AppData\Roaming</TargetFilename>
+        <TargetFilename condition="contains">AppData\Local\Temp</TargetFilename>
+        <TargetFilename condition="end with">.ps1</TargetFilename>
+        <TargetFilename condition="end with">.vbs</TargetFilename>
+        <TargetFilename condition="end with">.hta</TargetFilename>
+        <!-- Startup persistence -->
+        <TargetFilename condition="contains">Startup</TargetFilename>
+      </FileCreate>
+    </RuleGroup>
+
+    <!-- Event ID 12/13: Registry - Persistence detection -->
+    <RuleGroup name="" groupRelation="or">
+      <RegistryEvent onmatch="include">
+        <TargetObject condition="contains">CurrentVersion\Run</TargetObject>
+        <TargetObject condition="contains">CurrentVersion\RunOnce</TargetObject>
+        <TargetObject condition="contains">Winlogon</TargetObject>
+        <TargetObject condition="contains">Image File Execution Options</TargetObject>
+      </RegistryEvent>
+    </RuleGroup>
+
+    <!-- Event ID 22: DNS Query -->
+    <RuleGroup name="" groupRelation="or">
+      <DnsQuery onmatch="include">
+        <!-- Catch all DNS - filter noisy ones out -->
+        <QueryName condition="contains">ngrok</QueryName>
+        <QueryName condition="contains">pastebin</QueryName>
+        <QueryName condition="end with">.onion</QueryName>
+      </DnsQuery>
+    </RuleGroup>
+
+  </EventFiltering>
+</Sysmon>
